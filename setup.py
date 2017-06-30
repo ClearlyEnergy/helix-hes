@@ -17,7 +17,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='HES',
+    name='hes',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -28,7 +28,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/ClearlyEnergy/helix-hes',
+    url='https://github.com/ClearlyEnergy/seed-autoload.git',
 
     # Author details
     author='ClearlyEnergy',
@@ -63,7 +63,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='home energy score connectivity',
+    keywords='seed property load',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().

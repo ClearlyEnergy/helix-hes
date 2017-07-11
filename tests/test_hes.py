@@ -16,13 +16,21 @@ class HesTest(unittest.TestCase):
         
     def test_succesful_completion(self):
         score = hes.hes_helix(self.building_info)
-        print score
-        
         self.assertEqual(score['base_score'], 6)
+
+#    def test_bad_key(self):
+#        bad_info = self.building_info
+#        bad_info.update({'user_key':'abc123'})
+#        response = hes.hes_helix(bad_info)
     
     def test_fail_bad_bulding_id(self):
+        from zeep.exceptions import Fault
+
         self.building_info['building_id'] = '999999'
-        with self.assertRaises(TypeError):
+
+        try:
             hes.test_client(self.building_info)
-        
-#          self.assertTrue(isinstance(s, basestring))
+        except Fault as f:
+            self.assertEqual(f.message,"No building found for building_id #999999")
+        else:
+            self.assertTrue(False)

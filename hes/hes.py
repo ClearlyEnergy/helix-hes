@@ -24,34 +24,20 @@ def connect_client(wsdl = CLIENT_URL):
     For example:
        connect_client()
     """
-    try:
-        client = zeep.Client(wsdl)
-        return client
+    client = zeep.Client(wsdl)
+    return client
      
-    except Exception as e:
-        print(e.message)
-        raise    
-    
 def make_api_call(client, operation, params):
     """Retrieve Home Energy Score results
 
     For example:
        make_api_call(client, operation, params)
     """
-    try:
-        output = getattr(client.service, operation)(params) 
-        return output
-
-    except Exception as e:
-        return e.message
+    output = getattr(client.service, operation)(params)
+    return output
 
 def test_client(building_info):
     """Sample building info: building_info={'user_key':'ce4cdc28710349a1bbb4b7a047b65837','building_id':'142543'} """
-    try:
-        client = zeep.Client(wsdl ='https://sandbox.hesapi.labworks.org/st_api/wsdl')
-        output= client.service.retrieve_inputs(building_info)        
-        return output
-     
-    except Exception as e:
-        raise TypeError(e.message)
-        
+    client = zeep.Client(wsdl ='https://sandbox.hesapi.labworks.org/st_api/wsdl')
+    output= client.service.retrieve_inputs(building_info)
+    return output

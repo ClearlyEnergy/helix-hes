@@ -19,4 +19,10 @@ class HesTest(unittest.TestCase):
         print score
         
         self.assertEqual(score['base_score'], 6)
+    
+    def test_fail_bad_bulding_id(self):
+        self.building_info['building_id'] = '999999'
+        with self.assertRaises(TypeError):
+            hes.test_client(self.building_info)
+        
 #          self.assertTrue(isinstance(s, basestring))

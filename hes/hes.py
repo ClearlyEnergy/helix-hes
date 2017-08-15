@@ -2,10 +2,15 @@ import zeep
 """Home Energy Score connect to HES API and retrieves score and output values"""
 
 # select between sandbox and production
-CLIENT_URL = 'https://sandbox.hesapi.labworks.org/st_api/wsdl'  
+# URL is currently set to select the HES 2.0 beta
+CLIENT_URL = 'https://sandbeta.hesapi.labworks.org/st_api/wsdl'
 
-def hes_helix(building_info):
+def hes_helix(auth_info, building_info):
     client = connect_client()
+
+    token = make_api_call(client, 'get_session_token',auth_info)
+    building_info.update({'session_token': token})
+
     address = make_api_call(client, 'retrieve_inputs', building_info)
     result = {k: address['about'][k] for k in ('address','city','state','zip_code','year_built','conditioned_floor_area')}
 #    scores = make_api_call(client, 'retrieve_extended_results', building_info)

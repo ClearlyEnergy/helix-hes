@@ -34,6 +34,8 @@ class HesHelix:
         output = getattr(self.client.service, operation)(params)
         return output
 
+    # Call this method to retreive hes data for a building id using the
+    # authenitcation information provided when the class was instantiated
     def query_hes(self, building_id):
         building_info = {'building_id': building_id,
                          'user_key': self.user_key,
@@ -49,7 +51,10 @@ class HesHelix:
         result['pdf'] = label['file'][0]['url']
         return result
 
+    # destroy the session token associated with this client. This method should
+    # be called when you are done using the client.
     def end_session(self):
         params = {'session_token': self.token,
                   'user_key': self.user_key}
         self.__make_api_call('destroy_session_token', params)
+        self.token = None

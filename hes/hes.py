@@ -48,7 +48,8 @@ class HesHelix:
         # deal with source energy_total_base & source_energy_asset_base later
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
-                result.update({k: scores[k], k+'_unit': UNIT_DICT[k]})
+                key = k.replace('utility_', 'consumption_')
+                result.update({key: scores[k], key+'_unit': UNIT_DICT[k]})
                 
         if scores['utility_generated'] > 0:
             print('go retrieve solar specs')

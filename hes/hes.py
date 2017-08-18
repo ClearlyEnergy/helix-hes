@@ -49,7 +49,7 @@ class HesHelix:
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
                 key = k.replace('utility_', 'consumption_')
-                result.update({key: scores[k], key+'_unit': UNIT_DICT[k]})
+                result.update({key: (scores[k], UNIT_DICT[k])})
                 
         if scores['utility_generated'] > 0:
             print('go retrieve solar specs')
@@ -70,7 +70,7 @@ class HesHelix:
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
                 key = k.replace('utility_', 'consumption_')
-                result.update({key: scores[k], key+'_unit': UNIT_DICT[k]})
+                result.update({key: (scores[k], UNIT_DICT[k])})
         
         return result        
 

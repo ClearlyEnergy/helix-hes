@@ -4,7 +4,7 @@ import zeep
 # select between sandbox and production
 # URL is currently set to select the HES 2.0 beta
 CLIENT_URL = 'https://sandbeta.hesapi.labworks.org/st_api/wsdl'
-UNIT_DICT = {'utility_electric': 'kwh', 'utility_natural_gas':'therms', 'utility_fuel_oil': 'gallons', 'utility_lpg': 'gallons', 'utility_cord_wood': 'cords', 'utility_pellet_wood': 'pounds', 'utility_generated': 'kwh', 'source_energy_total_base': 'mmbtu'}
+UNIT_DICT = {'utility_electric': 'kwh', 'utility_generated': 'kwh', 'utility_natural_gas':'therms', 'utility_fuel_oil': 'gallons', 'utility_lpg': 'gallons', 'utility_cord_wood': 'cords', 'utility_pellet_wood': 'pounds', 'utility_generated': 'kwh', 'source_energy_total_base': 'mmbtu'}
 
 
 # An instance of this class is used to access building records in the HES
@@ -42,18 +42,21 @@ class HesHelix:
                          'user_key': self.user_key,
                          'session_token': self.token}
         address = self.__make_api_call('retrieve_inputs', building_info)
+
         result = {k: address['about'][k] for k in ('address', 'city', 'state', 'zip_code', 'year_built', 'conditioned_floor_area')}
+        if address['systems']['generation']['solar_electric']['system_capacity'] > 0:
+                result.update({'CAP_electric_pv': (address['systems']['generation']['solar_electric']['system_capacity'], 'kw', address['systems']['generation']['solar_electric']['year'])})
+                
         scores = self.__make_api_call('retrieve_label_results', building_info)
         result.update({k: scores[k] for k in ('qualified_assessor_id', 'assessment_type', 'base_score', 'hescore_version', 'assessment_date')})
         # deal with source energy_total_base & source_energy_asset_base later
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
-                key = k.replace('utility_', 'consumption_')
+                key = k.replace('utility_', 'CONS_')
                 result.update({key: (scores[k], UNIT_DICT[k])})
-                
         if scores['utility_generated'] > 0:
-            print('go retrieve solar specs')
-            
+            result.update({'PROD_electric_pv': (scores['utility_generated'], UNIT_DICT['utility_generated'])})
+                            
         building_label = building_info
         building_info.update({'is_final': 'false', 'is_polling': 'false'})
         label = self.__make_api_call('generate_label', building_label)

@@ -4,7 +4,16 @@ import zeep
 # select between sandbox and production
 # URL is currently set to select the HES 2.0 beta
 CLIENT_URL = 'https://sandbeta.hesapi.labworks.org/st_api/wsdl'
-UNIT_DICT = {'utility_electric': 'kwh', 'utility_generated': 'kwh', 'utility_natural_gas':'therms', 'utility_fuel_oil': 'gallons', 'utility_lpg': 'gallons', 'utility_cord_wood': 'cords', 'utility_pellet_wood': 'pounds', 'utility_generated': 'kwh', 'source_energy_total_base': 'mmbtu'}
+UNIT_DICT = {
+    'utility_electric': 'kwh', 
+    'utility_generated': 'kwh', 
+    'utility_natural_gas':'therms', 
+    'utility_fuel_oil': 'gallons', 
+    'utility_lpg': 'gallons', 
+    'utility_cord_wood': 'cords', 
+    'utility_pellet_wood': 'pounds', 
+    'utility_generated': 'kwh', 
+    'source_energy_total_base': 'mmbtu'}
 
 
 # An instance of this class is used to access building records in the HES
@@ -45,7 +54,9 @@ class HesHelix:
 
         result = {k: address['about'][k] for k in ('address', 'city', 'state', 'zip_code', 'year_built', 'conditioned_floor_area')}
         if address['systems']['generation']['solar_electric']['system_capacity'] > 0:
-                result.update({'CAP_electric_pv': (address['systems']['generation']['solar_electric']['system_capacity'], 'kw', address['systems']['generation']['solar_electric']['year'])})
+                result.update({
+                    'CAP_electric_pv': (address['systems']['generation']['solar_electric']['system_capacity'], 
+                    'kw', address['systems']['generation']['solar_electric']['year'])})
                 
         scores = self.__make_api_call('retrieve_label_results', building_info)
         result.update({k: scores[k] for k in ('qualified_assessor_id', 'assessment_type', 'base_score', 'hescore_version', 'assessment_date')})

@@ -1,4 +1,5 @@
 import zeep
+import json
 """Home Energy Score connect to HES API and retrieves score and output values"""
 
 # select between sandbox and production
@@ -55,18 +56,17 @@ class HesHelix:
         result = {k: address['about'][k] for k in ('address', 'city', 'state', 'zip_code', 'year_built', 'conditioned_floor_area')}
         if address['systems']['generation']['solar_electric']['system_capacity'] > 0:
                 result.update({
-                    'CAP_electric_pv': (address['systems']['generation']['solar_electric']['system_capacity'], 
-                    'kw', address['systems']['generation']['solar_electric']['year'])})
-                
+                    'CAP_electric_pv': json.dumps({'quantity': address['systems']['generation']['solar_electric']['system_capacity'], 'unit': 'kw', 'year': address['systems']['generation']['solar_electric']['year'], 'status': 'ESTIMATE'})})
+
         scores = self.__make_api_call('retrieve_label_results', building_info)
         result.update({k: scores[k] for k in ('qualified_assessor_id', 'assessment_type', 'base_score', 'hescore_version', 'assessment_date')})
         # deal with source energy_total_base & source_energy_asset_base later
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
                 key = k.replace('utility_', 'CONS_')
-                result.update({key: (scores[k], UNIT_DICT[k])})
+                result.update({key: json.dumps({'quantity': scores[k], 'unit': UNIT_DICT[k], 'status': 'ESTIMATE'})})
         if scores['utility_generated'] > 0:
-            result.update({'PROD_electric_pv': (scores['utility_generated'], UNIT_DICT['utility_generated'])})
+            result.update({'PROD_electric_pv': json.dumps({'quantity': scores['utility_generated'], 'unit': UNIT_DICT['utility_generated'], 'status': 'ESTIMATE'})})
                             
         building_label = building_info
         building_info.update({'is_final': 'false', 'is_polling': 'false'})

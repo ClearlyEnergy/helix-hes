@@ -73,20 +73,7 @@ class HesHelix:
         label = self.__make_api_call('generate_label', building_label)
         result['message'] = label['message']
         result['pdf'] = label['file'][0]['url']
-        return result
-        
-    def query_hes_method(self, method_name, building_id):
-        building_info = {'building_id': building_id,
-                         'user_key': self.user_key,
-                         'session_token': self.token}
-        scores = self.__make_api_call(method_name, building_info)
-        result = {}
-        for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
-            if scores[k] > 0:
-                key = k.replace('utility_', 'consumption_')
-                result.update({key: (scores[k], UNIT_DICT[k])})
-        
-        return result        
+        return result      
 
     # destroy the session token associated with this client. This method should
     # be called when you are done using the client.

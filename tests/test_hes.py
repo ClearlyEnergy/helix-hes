@@ -26,13 +26,6 @@ class HesTest(unittest.TestCase):
         self.assertEqual(score['base_score'], 4)
 
     def test_fail_bad_bulding_id(self):
-#        from zeep.exceptions import Fault
-        from zeep import exceptions
-
-        try:
-            self.hes_client.query_hes(142861)
-        except exceptions.Fault:
-            self.assertTrue(True)
-        else:
-            self.assertTrue(False)
+        result = self.hes_client.query_hes(111111)
+        self.assertTrue(result['status'],'error')
             

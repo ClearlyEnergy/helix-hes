@@ -5,7 +5,9 @@ import datetime
 
 # select between sandbox and production
 # URL is currently set to select the HES 2.0 beta
-CLIENT_URL = 'https://sandbeta.hesapi.labworks.org/st_api/wsdl'
+#CLIENT_URL = 'https://sandbeta.hesapi.labworks.org/st_api/wsdl' #sandbeta
+#CLIENT_URL = 'https://hesapi.labworks.org/st_api/wsdl' #production
+#CLIENT_URL = 'https://sandbox.hesapi.labworks.org/st_api/wsdl' #sandbox
 UNIT_DICT = {
     'utility_electric': 'kwh', 
     'utility_generated': 'kwh', 
@@ -113,7 +115,8 @@ class HesHelix:
            client.query_by_partner('Test')
         """
         if start_date is not None:
-            date_range = start_date+'_'+datetime.date.today().strftime("%Y-%m-%d")
+            date_range = start_date.strftime("%Y-%m-%d")+'_'+datetime.date.today().strftime("%Y-%m-%d")
+            
         page_number = 1
         building_list = []
         while True:

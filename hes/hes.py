@@ -99,6 +99,7 @@ class HesHelix:
             result['pdf'] = label['file'][0]['url']
         except  zeep.exceptions.Fault as f:
             result['pdf'] = ''
+        result['building_id'] = building_id
         result['status'] = 'success'
         return result
         

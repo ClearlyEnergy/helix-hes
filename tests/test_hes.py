@@ -1,6 +1,7 @@
 """Test for the hes module"""
 import unittest
 import zeep
+import os
 
 from hes import hes
 
@@ -11,10 +12,9 @@ class HesTest(unittest.TestCase):
         # This information is likely to change or become outdated as the hes
         # api updates or acount information is changed. If a lot of tests
         # start failing, make sure this is up to date.
-        self.user_name = 'TST-HELIX'
-        self.password = 'helix123'
-#        self.user_key = '520df908c6cb4bea8c14691ee95aff88' #sandbeta
-        self.user_key = '38681c487f054bfa9bb090cc93404e9f' #sandbox
+        self.user_key = os.environ.get('HES_USER_KEY','')
+        self.user_name = os.environ.get('HES_USER_NAME','')
+        self.password = os.environ.get('HES_PASSWORD','')
 #        self.building_id = '142860' #sandbeta
         self.building_id = '142543' #sandbox
         self.client_url = 'https://sandbox.hesapi.labworks.org/st_api/wsdl' #sandbox

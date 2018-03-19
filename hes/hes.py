@@ -75,7 +75,7 @@ class HesHelix:
         result = {k: address['about'][k] for k in ('address', 'city', 'state', 'zip_code', 'year_built', 'conditioned_floor_area')}
         if address['systems']['generation']['solar_electric']['system_capacity'] > 0:
                 result.update({
-                    'CAP_electric_pv': json.dumps({'quantity': address['systems']['generation']['solar_electric']['system_capacity'], 'unit': 'kw', 'year': address['systems']['generation']['solar_electric']['year'], 'status': 'ESTIMATE'})})
+                    'CAP_electric_pv': json.dumps({'quantity': address['systems']['generation']['solar_electric']['system_capacity'], 'unit': 'kw', 'year': address['systems']['generation']['solar_electric']['year'], 'status': 'ESTIMATE', 'subtype': 'PV'})})
                     
         try:
             scores = self.__make_api_call('retrieve_label_results', building_info)
@@ -89,7 +89,7 @@ class HesHelix:
                 key = k.replace('utility_', 'CONS_')
                 result.update({key: json.dumps({'quantity': scores[k], 'unit': UNIT_DICT[k], 'status': 'ESTIMATE'})})
         if scores['utility_generated'] > 0:
-            result.update({'PROD_electric_pv': json.dumps({'quantity': scores['utility_generated'], 'unit': UNIT_DICT['utility_generated'], 'status': 'ESTIMATE'})})
+            result.update({'PROD_electric_pv': json.dumps({'quantity': scores['utility_generated'], 'unit': UNIT_DICT['utility_generated'], 'status': 'ESTIMATE', 'subtype': 'PV'})})
                         
         building_label = building_info
         building_info.update({'is_final': 'false', 'is_polling': 'false'})

@@ -2,6 +2,7 @@
 import unittest
 import zeep
 import os
+import datetime
 
 from hes import hes
 
@@ -31,4 +32,8 @@ class HesTest(unittest.TestCase):
     def test_fail_bad_bulding_id(self):
         result = self.hes_client.query_hes(111111)
         self.assertTrue(result['status'],'error')
+        
+    def test_query_by_partner(self):
+        result=self.hes_client.query_by_partner('Test', datetime.date.today() - datetime.timedelta(7))
+        self.assertTrue(len(result)>0)
             

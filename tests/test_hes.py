@@ -19,6 +19,8 @@ class HesTest(unittest.TestCase):
 #        self.building_id = '142860' #sandbeta
         self.building_id = '142543' #sandbox
         self.client_url = 'https://sandbox.hesapi.labworks.org/st_api/wsdl' #sandbox
+#        self.client_url = 'https://sandbeta.hesapi.labworks.org/st_api/wsdl' #sandbeta
+#        self.client_url = 'https://hesapi.labworks.org/st_api/wsdl' #sandproduction
 
         self.hes_client = hes.HesHelix(self.client_url, self.user_name, self.password, self.user_key)
 

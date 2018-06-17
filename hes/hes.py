@@ -128,17 +128,23 @@ class HesHelix:
                             'page_number': page_number,
                             'archive': 0,
                         }
+                        
             if start_date is not None:
                 partner_info['date_range'] = date_range
-                
+            
             try:
                 buildings = self.__make_api_call('retrieve_buildings_by_partner', partner_info)
                 if not buildings:
-                    break    
-                building_list += [b['_value_1'][0]['id'] for b in buildings]
+                    return buildling_list
+                for b in buildings:
+                    if b['_value_1'][0]['assessment_type'] in ['initial', 'final', 'corrected']:
+                        building_list += [b['_value_1'][0]['id']]
                 page_number += 1
-            except zeep.exceptions.Fault as f:
-                return f.message
+            except zeep.exceptions.TransportError as f:
+                if f.message.startswith("Server returned HTTP status 500 (no content available)"):
+                    return building_list
+                else:
+                    return f.message
         return building_list
 
     def end_session(self):

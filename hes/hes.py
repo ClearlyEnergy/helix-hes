@@ -136,10 +136,15 @@ class HesHelix:
                 buildings = self.__make_api_call('retrieve_buildings_by_partner', partner_info)
                 if not buildings:
                     return buildling_list
-                for b in buildings:
+                for build, b in enumerate(buildings):
                     if b['_value_1'][0]['assessment_type'] in ['initial', 'final', 'corrected']:
                         building_list += [b['_value_1'][0]['id']]
-                page_number += 1
+                if build+1 == partner_info['rows_per_page']:
+                    page_number += 1
+                else:
+                    return building_list
+            except zeep.exceptions.Fault as f:
+                return f.message
             except zeep.exceptions.TransportError as f:
                 if f.message.startswith("Server returned HTTP status 500 (no content available)"):
                     return building_list

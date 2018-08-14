@@ -28,7 +28,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/ClearlyEnergy/seed-autoload.git',
+    url='https://github.com/ClearlyEnergy/helix-hes.git',
 
     # Author details
     author='ClearlyEnergy',

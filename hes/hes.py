@@ -72,7 +72,10 @@ class HesHelix:
         except zeep.exceptions.Fault as f:
             return {'status': 'error', 'message': f.message}
 
+        
         result = {k: address['about'][k] for k in ('address', 'city', 'state', 'zip_code', 'year_built', 'conditioned_floor_area')}
+        result['green_assessment_name'] = 'Home Energy Score'
+        result['green_assessment_property_source'] = 'Department of Energy'
         if address['systems']['generation']['solar_electric']['system_capacity'] > 0:
                 result.update({
                     'CAP_electric_pv': json.dumps({'quantity': address['systems']['generation']['solar_electric']['system_capacity'], 'unit': 'kw', 'year': address['systems']['generation']['solar_electric']['year'], 'status': 'ESTIMATE', 'subtype': 'PV'})})
@@ -81,8 +84,14 @@ class HesHelix:
             scores = self.__make_api_call('retrieve_label_results', building_info)
         except zeep.exceptions.Fault as f:
             return {'status': 'error', 'message': f.message}
-
-        result.update({k: scores[k] for k in ('qualified_assessor_id', 'assessment_type', 'base_score', 'hescore_version', 'assessment_date')})
+        
+        name_map = {
+            'qualified_assessor_id': 'qualified_assessor_id', 
+            'base_score': 'green_assessment_property_metric',
+            'assessment_type': 'green_assessment_property_status', 
+            'hescore_version': 'green_assessment_property_version', 
+            'assessment_date': 'green_assessment_property_date'}
+        result.update({name_map[k]: scores[k] for k in ('qualified_assessor_id', 'assessment_type', 'base_score', 'hescore_version', 'assessment_date')})
             # deal with source energy_total_base & source_energy_asset_base later
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
@@ -96,7 +105,7 @@ class HesHelix:
         try:
             label = self.__make_api_call('generate_label', building_label)
             result['message'] = label['message']
-            result['pdf'] = label['file'][0]['url']
+            result['green_assessment_property_url'] = label['file'][0]['url']
         except  zeep.exceptions.Fault as f:
             result['pdf'] = ''
         result['building_id'] = building_id

@@ -151,15 +151,16 @@ class HesHelix:
                 if build+1 == partner_info['rows_per_page']:
                     page_number += 1
                 else:
-                    return building_list
+                    return {'status': 'success', 'building_ids': building_list}
             except zeep.exceptions.Fault as f:
-                return f.message
+                return {'status': 'error', 'message': f.message}
             except zeep.exceptions.TransportError as f:
+                print f.message
                 if f.message.startswith("Server returned HTTP status 500 (no content available)"):
-                    return building_list
+                    return {'status': 'success', 'building_ids': building_list}
                 else:
-                    return f.message
-        return building_list
+                    return {'status': 'error', 'message': f.message}
+        return {'status': 'success', 'building_ids': building_list}
 
     def end_session(self):
         """Destroy the session token associated with this client. 

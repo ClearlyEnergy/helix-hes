@@ -37,5 +37,6 @@ class HesTest(unittest.TestCase):
         
     def test_query_by_partner(self):
         result=self.hes_client.query_by_partner('Test', datetime.date.today() - datetime.timedelta(7))
-        self.assertTrue(len(result)>0)
+        self.assertTrue(result['status'],'success')
+        self.assertTrue(len(result['building_ids'])>0)
             

@@ -125,8 +125,12 @@ class HesHelix:
            client.query_by_partner('Test')
         """
         if start_date is not None:
-            date_range = start_date.strftime("%Y-%m-%d")+'_'+datetime.date.today().strftime("%Y-%m-%d")
-            
+            date_range = start_date.strftime("%Y-%m-%d")+'_'
+            if end_date is not None: 
+                date_range = date_range+end_date.strftime("%Y-%m-%d")
+            else:
+                date_range = date_range+datetime.date.today().strftime("%Y-%m-%d") 
+                
         page_number = 1
         building_list = []
         while True:

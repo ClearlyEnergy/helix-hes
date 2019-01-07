@@ -74,12 +74,15 @@ class HesHelix:
 
         
         result = {k: address['about'][k] for k in ('address', 'city', 'state', 'zip_code', 'year_built', 'conditioned_floor_area')}
-        result['green_assessment_name'] = 'Home Energy Score'
-        result['green_assessment_property_source'] = 'Department of Energy'
+        result['Green Assessment Name'] = 'Home Energy Score'
+        result['Green Assessment Property Source'] = 'Department of Energy'
         if address['systems']['generation']['solar_electric']['system_capacity'] > 0:
-                result.update({
-                    'CAP_electric_pv': json.dumps({'quantity': address['systems']['generation']['solar_electric']['system_capacity'], 'unit': 'kw', 'year': address['systems']['generation']['solar_electric']['year'], 'status': 'ESTIMATE', 'subtype': 'PV'})})
-                    
+                result['Measurement Capacity Quantity'] = address['systems']['generation']['solar_electric']['system_capacity']
+                result['Measurement Capacity Year'] = address['systems']['generation']['solar_electric']['year']
+                result['Measurement Capacity Unit'] = 'kw'
+                result['Measurement Capacity Status'] = 'ESTIMATE'
+                result['Measurement Capacity Measurement Type'] = 'CAP'
+                result['Measurement Capacity Measurement Subtype'] = 'PV'
         try:
             scores = self.__make_api_call('retrieve_label_results', building_info)
         except zeep.exceptions.Fault as f:
@@ -87,25 +90,33 @@ class HesHelix:
         
         name_map = {
             'qualified_assessor_id': 'qualified_assessor_id', 
-            'base_score': 'green_assessment_property_metric',
-            'assessment_type': 'green_assessment_property_status', 
-            'hescore_version': 'green_assessment_property_version', 
-            'assessment_date': 'green_assessment_property_date'}
+            'base_score': 'Green Assessment Property Metric',
+            'assessment_type': 'Green Assessment Property Status', 
+            'hescore_version': 'Green Assessment Property Version', 
+            'assessment_date': 'Green Assessment Property Date'}
         result.update({name_map[k]: scores[k] for k in ('qualified_assessor_id', 'assessment_type', 'base_score', 'hescore_version', 'assessment_date')})
             # deal with source energy_total_base & source_energy_asset_base later
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
-                key = k.replace('utility_', 'CONS_')
-                result.update({key: json.dumps({'quantity': scores[k], 'unit': UNIT_DICT[k], 'status': 'ESTIMATE'})})
+                key = k.replace('utility_', '')
+                result['Measurement Consumption Quantity'] = scores[k]
+                result['Measurement Consumption Unit'] = UNIT_DICT[k]
+                result['Measurement Consumption Status'] = 'ESTIMATE'
+                result['Measurement Consumption Type'] = 'CONS'
+                result['Measurement Consumption Fuel'] = key
         if scores['utility_generated'] > 0:
-            result.update({'PROD_electric_pv': json.dumps({'quantity': scores['utility_generated'], 'unit': UNIT_DICT['utility_generated'], 'status': 'ESTIMATE', 'subtype': 'PV'})})
+            result['Measurement Production Quantity'] = scores['utility_generated']
+            result['Measurement Production Unit'] = UNIT_DICT['utility_generated']            
+            result['Measurement Production Status'] = 'ESTIMATE'
+            result['Measurement Production Type'] = 'PROD'
+            result['Measurement Production Subtype'] = 'PV'
                         
         building_label = building_info
         building_info.update({'is_final': 'false', 'is_polling': 'false'})
         try:
             label = self.__make_api_call('generate_label', building_label)
             result['message'] = label['message']
-            result['green_assessment_property_url'] = label['file'][0]['url']
+            result['Green Assessment Property Url'] = label['file'][0]['url']
         except  zeep.exceptions.Fault as f:
             result['pdf'] = ''
         result['building_id'] = building_id
@@ -159,7 +170,6 @@ class HesHelix:
             except zeep.exceptions.Fault as f:
                 return {'status': 'error', 'message': f.message}
             except zeep.exceptions.TransportError as f:
-                print f.message
                 if f.message.startswith("Server returned HTTP status 500 (no content available)"):
                     return {'status': 'success', 'building_ids': building_list}
                 else:

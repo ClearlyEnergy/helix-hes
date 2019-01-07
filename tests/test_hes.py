@@ -29,7 +29,7 @@ class HesTest(unittest.TestCase):
 
     def test_succesful_completion(self):
         score = self.hes_client.query_hes(self.building_id)
-        self.assertEqual(score['green_assessment_property_metric'], 6)
+        self.assertEqual(score['Green Assessment Property Metric'], 6)
 
     def test_fail_bad_bulding_id(self):
         result = self.hes_client.query_hes(111111)

@@ -72,8 +72,14 @@ class HesHelix:
         except zeep.exceptions.Fault as f:
             return {'status': 'error', 'message': f.message}
 
-        
-        result = {k: address['about'][k] for k in ('address', 'city', 'state', 'zip_code', 'year_built', 'conditioned_floor_area')}
+        location_map = {
+            'address': 'Address Line 1',
+            'city': 'City',
+            'zip_code': 'Postal Code',
+            'year_built': 'Year Built',
+            'conditioned_floor_area': 'Conditioned Floor Area' 
+        }
+        result = {location_map[k]: address['about'][k] for k in location_map.keys()}
         result['Green Assessment Name'] = 'Home Energy Score'
         result['Green Assessment Property Source'] = 'Department of Energy'
         if address['systems']['generation']['solar_electric']['system_capacity'] > 0:
@@ -89,12 +95,12 @@ class HesHelix:
             return {'status': 'error', 'message': f.message}
         
         name_map = {
-            'qualified_assessor_id': 'qualified_assessor_id', 
+            'qualified_assessor_id': 'Qualified Assessor Id', 
             'base_score': 'Green Assessment Property Metric',
             'assessment_type': 'Green Assessment Property Status', 
             'hescore_version': 'Green Assessment Property Version', 
             'assessment_date': 'Green Assessment Property Date'}
-        result.update({name_map[k]: scores[k] for k in ('qualified_assessor_id', 'assessment_type', 'base_score', 'hescore_version', 'assessment_date')})
+        result.update({name_map[k]: scores[k] for k in name_map.keys()})
             # deal with source energy_total_base & source_energy_asset_base later
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
@@ -115,12 +121,12 @@ class HesHelix:
         building_info.update({'is_final': 'false', 'is_polling': 'false'})
         try:
             label = self.__make_api_call('generate_label', building_label)
-            result['message'] = label['message']
+            result['Message'] = label['message']
             result['Green Assessment Property Url'] = label['file'][0]['url']
         except  zeep.exceptions.Fault as f:
             result['pdf'] = ''
-        result['building_id'] = building_id
-        result['status'] = 'success'
+        result['Building Id'] = building_id
+        result['Status'] = 'success'
         return result
         
     def query_by_partner(self, partner, start_date=None, end_date=None):

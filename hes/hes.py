@@ -104,7 +104,7 @@ class HesHelix:
             # deal with source energy_total_base & source_energy_asset_base later
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
-                key = k.replace('utility_', '').replace('_',' ').capitalize()
+                key = k.replace('utility_', '').replace('_',' ').title()
                 result['Measurement Consumption Quantity'] = scores[k]
                 result['Measurement Consumption Unit'] = UNIT_DICT[k]
                 result['Measurement Consumption Status'] = 'ESTIMATE'

@@ -87,7 +87,7 @@ class HesHelix:
                 result['Measurement Capacity Year'] = address['systems']['generation']['solar_electric']['year']
                 result['Measurement Capacity Unit'] = 'kw'
                 result['Measurement Capacity Status'] = 'ESTIMATE'
-                result['Measurement Capacity Measurement Type'] = 'CAP'
+                result['Measurement Capacity Measurement Type'] = 'Capacity'
                 result['Measurement Capacity Measurement Subtype'] = 'PV'
         try:
             scores = self.__make_api_call('retrieve_label_results', building_info)
@@ -104,17 +104,17 @@ class HesHelix:
             # deal with source energy_total_base & source_energy_asset_base later
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:
-                key = k.replace('utility_', '')
+                key = k.replace('utility_', '').replace('_',' ').capitalize()
                 result['Measurement Consumption Quantity'] = scores[k]
                 result['Measurement Consumption Unit'] = UNIT_DICT[k]
                 result['Measurement Consumption Status'] = 'ESTIMATE'
-                result['Measurement Consumption Measurement Type'] = 'CONS'
+                result['Measurement Consumption Measurement Type'] = 'Consumption'
                 result['Measurement Consumption Fuel'] = key
         if scores['utility_generated'] > 0:
             result['Measurement Production Quantity'] = scores['utility_generated']
             result['Measurement Production Unit'] = UNIT_DICT['utility_generated']            
             result['Measurement Production Status'] = 'ESTIMATE'
-            result['Measurement Production Measurement Type'] = 'PROD'
+            result['Measurement Production Measurement Type'] = 'Production'
             result['Measurement Production Measurement Subtype'] = 'PV'
                         
         building_label = building_info
@@ -125,7 +125,7 @@ class HesHelix:
             result['Green Assessment Property Url'] = label['file'][0]['url']
         except  zeep.exceptions.Fault as f:
             result['pdf'] = ''
-        result['Building Id'] = building_id
+        result['Building ID'] = building_id
         result['status'] = 'success'
         return result
         

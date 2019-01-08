@@ -102,14 +102,14 @@ class HesHelix:
                 result['Measurement Consumption Quantity'] = scores[k]
                 result['Measurement Consumption Unit'] = UNIT_DICT[k]
                 result['Measurement Consumption Status'] = 'ESTIMATE'
-                result['Measurement Consumption Type'] = 'CONS'
+                result['Measurement Consumption Measurement Type'] = 'CONS'
                 result['Measurement Consumption Fuel'] = key
         if scores['utility_generated'] > 0:
             result['Measurement Production Quantity'] = scores['utility_generated']
             result['Measurement Production Unit'] = UNIT_DICT['utility_generated']            
             result['Measurement Production Status'] = 'ESTIMATE'
-            result['Measurement Production Type'] = 'PROD'
-            result['Measurement Production Subtype'] = 'PV'
+            result['Measurement Production Measurement Type'] = 'PROD'
+            result['Measurement Production Measurement Subtype'] = 'PV'
                         
         building_label = building_info
         building_info.update({'is_final': 'false', 'is_polling': 'false'})

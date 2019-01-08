@@ -126,7 +126,7 @@ class HesHelix:
         except  zeep.exceptions.Fault as f:
             result['pdf'] = ''
         result['Building Id'] = building_id
-        result['Status'] = 'success'
+        result['status'] = 'success'
         return result
         
     def query_by_partner(self, partner, start_date=None, end_date=None):

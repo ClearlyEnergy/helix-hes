@@ -53,6 +53,27 @@ class HesHelix:
         output = getattr(self.client.service, operation)(params)
         return output
 
+    def query_inputs(self, building_id):
+        building_info = {'building_id': building_id,
+                         'user_key': self.user_key,
+                         'session_token': self.token}
+        inputs = self.__make_api_call('retrieve_inputs', building_info)
+        return inputs
+
+    def query_result(self, building_id):
+        building_info = {'building_id': building_id,
+                         'user_key': self.user_key,
+                         'session_token': self.token}
+        results = self.__make_api_call('retrieve_label_results', building_info)
+        return results
+
+    def query_label(self, building_id):
+        building_info = {'building_id': building_id,
+                         'user_key': self.user_key,
+                         'session_token': self.token}
+        label = self.__make_api_call('generate_label', building_info)
+        return label       
+    
     def query_hes(self, building_id):
         """ Returns primary Home Energy Score parameters for a building ID. Use authentication information provided when the class is instantiated
         Parameters:
@@ -67,34 +88,35 @@ class HesHelix:
         building_info = {'building_id': building_id,
                          'user_key': self.user_key,
                          'session_token': self.token}
-        try:                         
-            address = self.__make_api_call('retrieve_inputs', building_info)
-        except zeep.exceptions.Fault as f:
-            return {'status': 'error', 'message': f.message}
-
-        location_map = {
-            'address': 'Address Line 1',
-            'city': 'City',
-            'zip_code': 'Postal Code',
-            'year_built': 'Year Built',
-            'conditioned_floor_area': 'Conditioned Floor Area' 
-        }
-        result = {location_map[k]: address['about'][k] for k in location_map.keys()}
+                         
+        result = {}
         result['Green Assessment Name'] = 'Home Energy Score'
         result['Green Assessment Property Source'] = 'Department of Energy'
-        if address['systems']['generation']['solar_electric']['system_capacity'] > 0:
-                result['Measurement Capacity Quantity'] = address['systems']['generation']['solar_electric']['system_capacity']
-                result['Measurement Capacity Year'] = address['systems']['generation']['solar_electric']['year']
-                result['Measurement Capacity Unit'] = 'kw'
-                result['Measurement Capacity Status'] = 'ESTIMATE'
-                result['Measurement Capacity Measurement Type'] = 'Capacity'
-                result['Measurement Capacity Measurement Subtype'] = 'PV'
+
+#        try:                         
+#            address = self.__make_api_call('retrieve_inputs', building_info)
+#            if address['systems']['generation']['solar_electric']['system_capacity'] > 0:
+#                    result['Measurement Capacity Quantity'] = address['systems']['generation']['solar_electric']['system_capacity']
+#                    result['Measurement Capacity Year'] = address['systems']['generation']['solar_electric']['year']
+#                    result['Measurement Capacity Unit'] = 'kw'
+#                    result['Measurement Capacity Status'] = 'ESTIMATE'
+#                    result['Measurement Capacity Measurement Type'] = 'Capacity'
+#                    result['Measurement Capacity Measurement Subtype'] = 'PV'
+#        except zeep.exceptions.Fault as f:
+#            print(f.message);
+#            return {'status': 'error', 'message': f.message}
+
         try:
             scores = self.__make_api_call('retrieve_label_results', building_info)
         except zeep.exceptions.Fault as f:
             return {'status': 'error', 'message': f.message}
         
         name_map = {
+            'address': 'Address Line 1',
+            'city': 'City', 
+            'zip_code': 'Postal Code', 
+            'year_built': 'Year Built',
+            'conditioned_floor_area': 'Conditioned Floor Area',
             'qualified_assessor_id': 'Qualified Assessor Id', 
             'base_score': 'Green Assessment Property Metric',
             'assessment_type': 'Green Assessment Property Status', 
@@ -140,27 +162,22 @@ class HesHelix:
             list of ids
         For example:
            client.query_by_partner('Test')
-        """
-        if start_date is not None:
-            date_range = start_date.strftime("%Y-%m-%d")+'_'
-            if end_date is not None: 
-                date_range = date_range+end_date.strftime("%Y-%m-%d")
-            else:
-                date_range = date_range+datetime.date.today().strftime("%Y-%m-%d") 
-                
+        """                
         page_number = 1
         building_list = []
         while True:
             partner_info = {'partner': partner,
                             'session_token': self.token,
                             'user_key': self.user_key,
-                            'rows_per_page': 10,
+                            'rows_per_page': 100,
                             'page_number': page_number,
                             'archive': 0,
                         }
                         
             if start_date is not None:
-                partner_info['date_range'] = date_range
+                partner_info['min_date'] = start_date               
+            if end_date is not None: 
+                partner_info['max_date'] = end_date
             
             try:
                 buildings = self.__make_api_call('retrieve_buildings_by_partner', partner_info)

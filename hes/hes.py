@@ -1,22 +1,28 @@
 import zeep
+#from zeep.cache import SqliteCache, InMemoryCache
+from zeep.transports import Transport
 import json
 import datetime
-"""Home Energy Score connect to HES API and retrieves score and output values"""
+import csv
+import urllib2
 
+"""Home Energy Score connect to HES API and retrieves score and output values"""
+    
 # select between sandbox and production
 # URL is currently set to select the HES 2.0 beta
 #CLIENT_URL = 'https://sandbeta.hesapi.labworks.org/st_api/wsdl' #sandbeta
 #CLIENT_URL = 'https://hesapi.labworks.org/st_api/wsdl' #production
 #CLIENT_URL = 'https://sandbox.hesapi.labworks.org/st_api/wsdl' #sandbox
 UNIT_DICT = {
-    'utility_electric': 'kwh', 
+    'cost': 'dollars',
+    'system_capacity': 'kw',
     'utility_generated': 'kwh', 
-    'utility_natural_gas':'therms', 
-    'utility_fuel_oil': 'gallons', 
-    'utility_lpg': 'gallons', 
-    'utility_cord_wood': 'cords', 
-    'utility_pellet_wood': 'pounds', 
-    'utility_generated': 'kwh', 
+    'utility_electric_base': 'kwh', 
+    'utility_natural_gas_base':'therms', 
+    'utility_fuel_oil_base': 'gallons', 
+    'utility_lpg_base': 'gallons', 
+    'utility_cord_wood_base': 'cords', 
+    'utility_pellet_wood_base': 'pounds', 
     'source_energy_total_base': 'mmbtu'}
 
 
@@ -30,7 +36,9 @@ class HesHelix:
         self.user_key = user_key
         self.user_name = user_name
         self.password = password
-        self.client = zeep.Client(wsdl)
+#        transport = Transport(cache=InMemoryCache())
+#        self.client = zeep.Client(wsdl, transport=transport)
+        self.client = zeep.Client(wsdl) #doesn't set global variable
         self.token = self.__get_session_token()
 
     def __get_session_token(self):
@@ -66,13 +74,105 @@ class HesHelix:
                          'session_token': self.token}
         results = self.__make_api_call('retrieve_label_results', building_info)
         return results
+        
+    def query_partner_result(self, partner, start_date=None, end_date=None):  
+        partner_info = {'partner': partner,
+                        'session_token': self.token,
+                        'user_key': self.user_key,
+                        'is_async': 0
+                    }
+                    
+        if start_date is not None:
+            partner_info['start_date'] = start_date               
+        if end_date is not None: 
+            partner_info['end_date'] = end_date
+            
+        all_results = self.__make_api_call('export_partner_label_results', partner_info)
+        print(all_results)
+        results = []
+        if all_results['status']:
+            results = self.parse_file(all_results['url'])
+        return results
+        
 
     def query_label(self, building_id):
         building_info = {'building_id': building_id,
                          'user_key': self.user_key,
                          'session_token': self.token}
         label = self.__make_api_call('generate_label', building_info)
-        return label       
+        return label    
+        
+    def parse_file(self, url):
+        name_map = {
+            'address': 'Address Line 1',
+            'city': 'City', 
+            'zip_code': 'Postal Code', 
+            'year_built': 'Year Built',
+            'conditioned_floor_area': 'Conditioned Floor Area',
+            'qualified_assessor_id': 'Qualified Assessor Id', 
+            'base_score': 'Green Assessment Property Metric',
+            'assessment_type': 'Green Assessment Property Status', 
+#            'hescore_version': 'Green Assessment Property Version', 
+            'assessment_date': 'Green Assessment Property Date',
+            'assessment_type': 'Green Assessment Property Status',
+            'label_url': 'Green Assessment Property Url',
+            'building_id': 'Building ID',
+            'hvac.0.heating.fuel_primary': 'heating_fuel',
+            'domestic_hot_water.fuel_primary': 'waterheater_fuel'}
+
+        result = []
+        existing_addresses = []
+#        file_name = 'HES_export_20181101_20181201_05152019_5cdc41.csv'
+#        with open(file_name, mode='r') as csv_file:
+        csv_file = urllib2.urlopen(url)
+        csv_reader = csv.DictReader(csv_file)
+            
+        for row in csv_reader:
+            if row['assessment_type'] not in ['Initial', 'Final', 'Corrected']:
+                continue
+            new_address = row['address']+row['zip_code']
+            if new_address in existing_addresses:
+                currind = existing_addresses.index(new_address)
+                currbldg = result[currind]['Building ID']
+                if currbldg < row['building_id']: #keep last iteration
+                    del result[currind]
+                    del existing_addresses[currind]
+                    existing_addresses.append(new_address)
+                elif currbldg > row['building_id']:
+                    continue
+            else:
+                existing_addresses.append(new_address)
+
+            rowdat = {'Green Assessment Name': 'Home Energy Score', 'Green Assessment Property Source': 'Department of Energy'}
+            rowdat.update({name_map[k]: row[k] for k in name_map.keys()})
+            rowdat['Measurement Cost Quantity'] = row['base_cost']
+            rowdat['Measurement Cost Unit'] = UNIT_DICT['cost'] 
+            rowdat['Measurement Cost Status'] = 'ESTIMATE'
+            rowdat['Measurement Cost Measurement Type'] = 'Cost'
+            if row['solar_electric.system_capacity'] > 0:
+                rowdat['Measurement Capacity Quantity'] = row['solar_electric.system_capacity']
+                rowdat['Measurement Capacity Year'] = row['solar_electric.year']
+                rowdat['Measurement Capacity Unit'] = UNIT_DICT['system_capacity'] 
+                rowdat['Measurement Capacity Status'] = 'ESTIMATE'
+                rowdat['Measurement Capacity Measurement Type'] = 'Capacity'
+                rowdat['Measurement Capacity Measurement Subtype'] = 'PV'
+            if row['utility_generated_base'] > 0:
+                rowdat['Measurement Production Quantity'] = row['utility_generated_base']
+                rowdat['Measurement Production Unit'] = UNIT_DICT['utility_generated'] 
+                rowdat['Measurement Production Status'] = 'ESTIMATE'
+                rowdat['Measurement Production Measurement Type'] = 'Production'
+                rowdat['Measurement Production Measurement Subtype'] = 'PV'                    
+            for k in ('utility_electric_base', 'utility_natural_gas_base', 'utility_fuel_oil_base', 'utility_lpg_base', 'utility_cord_wood_base', 'utility_pellet_wood_base'):
+                if row[k] > 0:
+                    key = k.replace('utility_', '').replace('_',' ').replace('base','').title()
+                    rowdat['Measurement Consumption Quantity'] = row[k]
+                    rowdat['Measurement Consumption Unit'] = UNIT_DICT[k]
+                    rowdat['Measurement Consumption Status'] = 'ESTIMATE'
+                    rowdat['Measurement Consumption Measurement Type'] = 'Consumption'
+                    rowdat['Measurement Consumption Fuel'] = key
+                
+            result.append(rowdat)
+        return result
     
     def query_hes(self, building_id):
         """ Returns primary Home Energy Score parameters for a building ID. Use authentication information provided when the class is instantiated
@@ -182,7 +282,7 @@ class HesHelix:
             try:
                 buildings = self.__make_api_call('retrieve_buildings_by_partner', partner_info)
                 if not buildings:
-                    return buildling_list
+                    return {'status': 'error', 'message': 'No buildings found'}
                 for build, b in enumerate(buildings):
                     if b['_value_1'][0]['assessment_type'] in ['initial', 'final', 'corrected']:
                         building_list += [b['_value_1'][0]['id']]

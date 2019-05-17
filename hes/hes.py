@@ -24,6 +24,15 @@ UNIT_DICT = {
     'utility_cord_wood_base': 'cords', 
     'utility_pellet_wood_base': 'pounds', 
     'source_energy_total_base': 'mmbtu'}
+    
+FUEL_DICT = {
+    'lpg': 'Propane',
+    'fueloil': 'Fuel Oil',
+    'electric': 'Electric',
+    'naturalgas': 'Natural Gas',
+    'cordwood': 'Cord Wood',
+    'pelletwood': 'Pellet Wood'
+}
 
 
 # An instance of this class is used to access building records in the HES
@@ -88,7 +97,6 @@ class HesHelix:
             partner_info['end_date'] = end_date
             
         all_results = self.__make_api_call('export_partner_label_results', partner_info)
-        print(all_results)
         results = []
         if all_results['status']:
             results = self.parse_file(all_results['url'])
@@ -117,8 +125,8 @@ class HesHelix:
             'assessment_type': 'Green Assessment Property Status',
             'label_url': 'Green Assessment Property Url',
             'building_id': 'Building ID',
-            'hvac.0.heating.fuel_primary': 'heating_fuel',
-            'domestic_hot_water.fuel_primary': 'waterheater_fuel'}
+            'hvac.0.heating.fuel_primary': 'Heating Fuel',
+            'domestic_hot_water.fuel_primary': 'Water Heater Fuel'}
 
         result = []
         existing_addresses = []
@@ -149,27 +157,28 @@ class HesHelix:
             rowdat['Measurement Cost Unit'] = UNIT_DICT['cost'] 
             rowdat['Measurement Cost Status'] = 'ESTIMATE'
             rowdat['Measurement Cost Measurement Type'] = 'Cost'
-            if row['solar_electric.system_capacity'] > 0:
+            if row['solar_electric.system_capacity'] and float(row['solar_electric.system_capacity']) > 0:
                 rowdat['Measurement Capacity Quantity'] = row['solar_electric.system_capacity']
                 rowdat['Measurement Capacity Year'] = row['solar_electric.year']
                 rowdat['Measurement Capacity Unit'] = UNIT_DICT['system_capacity'] 
                 rowdat['Measurement Capacity Status'] = 'ESTIMATE'
                 rowdat['Measurement Capacity Measurement Type'] = 'Capacity'
                 rowdat['Measurement Capacity Measurement Subtype'] = 'PV'
-            if row['utility_generated_base'] > 0:
+            if row['solar_electric.system_capacity'] and float(row['utility_generated_base']) > 0:
                 rowdat['Measurement Production Quantity'] = row['utility_generated_base']
                 rowdat['Measurement Production Unit'] = UNIT_DICT['utility_generated'] 
                 rowdat['Measurement Production Status'] = 'ESTIMATE'
                 rowdat['Measurement Production Measurement Type'] = 'Production'
                 rowdat['Measurement Production Measurement Subtype'] = 'PV'                    
             for k in ('utility_electric_base', 'utility_natural_gas_base', 'utility_fuel_oil_base', 'utility_lpg_base', 'utility_cord_wood_base', 'utility_pellet_wood_base'):
-                if row[k] > 0:
-                    key = k.replace('utility_', '').replace('_',' ').replace('base','').title()
-                    rowdat['Measurement Consumption Quantity'] = row[k]
-                    rowdat['Measurement Consumption Unit'] = UNIT_DICT[k]
-                    rowdat['Measurement Consumption Status'] = 'ESTIMATE'
-                    rowdat['Measurement Consumption Measurement Type'] = 'Consumption'
-                    rowdat['Measurement Consumption Fuel'] = key
+                if row[k] and float(row[k]) > 0:
+                    key = k.replace('utility_', '').replace('base','').replace('_','')
+                    key = FUEL_DICT[key].title()
+                    rowdat['Measurement Consumption Quantity ' + key] = row[k]
+                    rowdat['Measurement Consumption Unit ' + key] = UNIT_DICT[k]
+                    rowdat['Measurement Consumption Status ' + key] = 'ESTIMATE'
+                    rowdat['Measurement Consumption Measurement Type ' + key] = 'Consumption'
+                    rowdat['Measurement Consumption Fuel ' + key] = key
                 
             result.append(rowdat)
         return result

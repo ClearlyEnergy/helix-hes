@@ -126,7 +126,7 @@ class HesHelix:
             'assessment_date': 'Green Assessment Property Date',
             'assessment_type': 'Green Assessment Property Status',
             'label_url': 'Green Assessment Property Url',
-            'building_id': 'Building ID',
+            'building_id': 'Green Assessment Property Reference Id',
             'hvac.0.heating.fuel_primary': 'Heating Fuel',
             'domestic_hot_water.fuel_primary': 'Water Heater Fuel'}
 
@@ -153,7 +153,7 @@ class HesHelix:
             new_address = row['address']+row['zip_code']
             if new_address in existing_addresses:
                 currind = existing_addresses.index(new_address)
-                currbldg = result[currind]['Building ID']
+                currbldg = result[currind]['Green Assessment Property Reference Id']
                 if currbldg < row['building_id']: #keep last iteration
                     del result[currind]
                     del existing_addresses[currind]

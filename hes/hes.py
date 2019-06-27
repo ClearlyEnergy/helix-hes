@@ -4,6 +4,7 @@ from zeep.transports import Transport
 import json
 import datetime
 import csv
+import re
 import urllib2
 
 """Home Energy Score connect to HES API and retrieves score and output values"""
@@ -97,9 +98,10 @@ class HesHelix:
             partner_info['end_date'] = end_date
             
         all_results = self.__make_api_call('export_partner_label_results', partner_info)
+        print(all_results)
         results = []
         if all_results['status']:
-            results = self.parse_file(all_results['url'])
+            results = self.parse_file(all_results['url'], partner)
         return results
         
 
@@ -110,7 +112,7 @@ class HesHelix:
         label = self.__make_api_call('generate_label', building_info)
         return label    
         
-    def parse_file(self, url):
+    def parse_file(self, url, partner):
         name_map = {
             'address': 'Address Line 1',
             'city': 'City', 
@@ -138,6 +140,16 @@ class HesHelix:
         for row in csv_reader:
             if row['assessment_type'] not in ['Initial', 'Final', 'Corrected']:
                 continue
+            if partner == 'CT':
+                if row['address'].endswith(','):
+                    address_parts = row['address'].split(',')
+                    new_address = address_parts[-2] + ' ' + ''.join(address_parts[:-2])
+                    row['address'] = new_address.rstrip()
+                elif re.search(r'\d+$', row['address']):
+                    m = re.search(r'\d+$', row['address'])
+                    address_parts = row['address'].split(m.group(0))
+                    new_address = m.group(0) + ' ' + address_parts[0]
+                    row['address'] = new_address.rstrip()
             new_address = row['address']+row['zip_code']
             if new_address in existing_addresses:
                 currind = existing_addresses.index(new_address)

@@ -98,7 +98,6 @@ class HesHelix:
             partner_info['end_date'] = end_date
             
         all_results = self.__make_api_call('export_partner_label_results', partner_info)
-        print(all_results)
         results = []
         if all_results['status']:
             results = self.parse_file(all_results['url'], partner)

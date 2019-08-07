@@ -118,6 +118,7 @@ class HesHelix:
             'city': 'City', 
             'zip_code': 'Postal Code', 
             'year_built': 'Year Built',
+            'state': 'State',
             'conditioned_floor_area': 'Conditioned Floor Area',
             'qualified_assessor_id': 'Qualified Assessor Id', 
             'base_score': 'Green Assessment Property Metric',

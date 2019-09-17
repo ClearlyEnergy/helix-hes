@@ -127,8 +127,8 @@ class HesHelix:
             'assessment_type': 'Green Assessment Property Status',
             'label_url': 'Green Assessment Property Url',
             'building_id': 'Green Assessment Property Reference Id',
-            'hvac.0.heating.fuel_primary': 'Heating Fuel',
-            'domestic_hot_water.fuel_primary': 'Water Heater Fuel'}
+            'hvac_0_heating_fuel_primary': 'Heating Fuel',
+            'domestic_hot_water_fuel_primary': 'Water Heater Fuel'}
 
         result = []
         existing_addresses = []
@@ -169,14 +169,14 @@ class HesHelix:
             rowdat['Measurement Cost Unit'] = UNIT_DICT['cost'] 
             rowdat['Measurement Cost Status'] = 'ESTIMATE'
             rowdat['Measurement Cost Measurement Type'] = 'Cost'
-            if row['solar_electric.system_capacity'] and float(row['solar_electric.system_capacity']) > 0:
-                rowdat['Measurement Capacity Quantity'] = row['solar_electric.system_capacity']
-                rowdat['Measurement Capacity Year'] = row['solar_electric.year']
+            if row['solar_electric_system_capacity'] and float(row['solar_electric_system_capacity']) > 0:
+                rowdat['Measurement Capacity Quantity'] = row['solar_electric_system_capacity']
+                rowdat['Measurement Capacity Year'] = row['solar_electric_year']
                 rowdat['Measurement Capacity Unit'] = UNIT_DICT['system_capacity'] 
                 rowdat['Measurement Capacity Status'] = 'ESTIMATE'
                 rowdat['Measurement Capacity Measurement Type'] = 'Capacity'
                 rowdat['Measurement Capacity Measurement Subtype'] = 'PV'
-            if row['solar_electric.system_capacity'] and float(row['utility_generated_base']) > 0:
+            if row['solar_electric_system_capacity'] and float(row['utility_generated_base']) > 0:
                 rowdat['Measurement Production Quantity'] = row['utility_generated_base']
                 rowdat['Measurement Production Unit'] = UNIT_DICT['utility_generated'] 
                 rowdat['Measurement Production Status'] = 'ESTIMATE'

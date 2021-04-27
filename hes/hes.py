@@ -21,6 +21,18 @@ UNIT_DICT = {
     'utility_cord_wood_base': 'cords',
     'utility_pellet_wood_base': 'pounds',
     'source_energy_total_base': 'mmbtu'}
+    
+UNIT_DICT_SINGLE = {
+    'cost': 'dollars',
+    'system_capacity': 'kw',
+    'utility_generated': 'kwh',
+    'utility_electric': 'kwh',
+    'utility_natural_gas': 'therms',
+    'utility_fuel_oil': 'gallons',
+    'utility_lpg': 'gallons',
+    'utility_cord_wood': 'cords',
+    'utility_pellet_wood': 'pounds',
+    'source_energy_total': 'mmbtu'}
 
 FUEL_DICT = {
     'lpg': 'Propane',
@@ -220,6 +232,8 @@ class HesHelix:
             'conditioned_floor_area': 'Conditioned Floor Area',
             'qualified_assessor_id': 'Qualified Assessor Id',
             'base_score': 'Green Assessment Property Metric',
+            'package_score': 'Package Score',
+            'cost_savings': 'Package Cost Savings',
             'assessment_type': 'Green Assessment Property Status',
             'hescore_version': 'Green Assessment Property Version',
             'assessment_date': 'Green Assessment Property Date'}
@@ -229,16 +243,26 @@ class HesHelix:
             if scores[k] > 0:
                 key = k.replace('utility_', '').replace('_', ' ').title()
                 result['Measurement Consumption Quantity'] = scores[k]
-                result['Measurement Consumption Unit'] = UNIT_DICT[k]
+                result['Measurement Consumption Unit'] = UNIT_DICT_SINGLE[k]
                 result['Measurement Consumption Status'] = 'ESTIMATE'
                 result['Measurement Consumption Measurement Type'] = 'Consumption'
                 result['Measurement Consumption Fuel'] = key
         if scores['utility_generated'] > 0:
             result['Measurement Production Quantity'] = scores['utility_generated']
-            result['Measurement Production Unit'] = UNIT_DICT['utility_generated']
+            result['Measurement Production Unit'] = UNIT_DICT_SINGLE['utility_generated']
             result['Measurement Production Status'] = 'ESTIMATE'
             result['Measurement Production Measurement Type'] = 'Production'
             result['Measurement Production Measurement Subtype'] = 'PV'
+
+# get a few additional parameters from extended results
+        try:
+            scores = self.__make_api_call('retrieve_extended_results', building_info)
+            name_map = {
+                'base_cost': 'Base Cost',
+                'package_cost': 'Package Cost'}
+            result.update({name_map[k]: scores[k] for k in name_map.keys()})
+        except zeep.exceptions.Fault as f:
+            return {'status': 'error', 'message': f.message}
 
         building_label = building_info
         building_info.update({'is_final': 'false', 'is_polling': 'false'})

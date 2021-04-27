@@ -17,19 +17,20 @@ class HesTest(unittest.TestCase):
         self.user_name = os.environ.get('HES_USER_NAME','')
         self.password = os.environ.get('HES_PASSWORD','')
 #        self.building_id = '142860' #sandbeta
-        self.building_id = '142543' #sandbox
-        self.client_url = 'https://sandbox.hesapi.labworks.org/st_api/wsdl' #sandbox
+        self.building_id = '332297' #sandbox -  if necessary check for new building @ https://hescore.labworks.org/dashboard
+#        self.client_url = 'https://sandbox.hesapi.labworks.org/st_api/wsdl' #sandbox
 #        self.client_url = 'https://sandbeta.hesapi.labworks.org/st_api/wsdl' #sandbeta
-#        self.client_url = 'https://hesapi.labworks.org/st_api/wsdl' #sandproduction
+        self.client_url = 'https://hesapi.labworks.org/st_api/wsdl' #sandproduction
 
         self.hes_client = hes.HesHelix(self.client_url, self.user_name, self.password, self.user_key)
 
     def test_client_connectivity(self):
+        print(self.hes_client.client)
         self.assertIsInstance(self.hes_client.client, zeep.Client)
 
-#    def test_succesful_completion(self):
-#        score = self.hes_client.query_hes(self.building_id)
-#        self.assertEqual(score['Green Assessment Property Metric'], 6)
+    def test_succesful_completion(self):
+        score = self.hes_client.query_hes(self.building_id)
+        self.assertEqual(score['Green Assessment Property Metric'], 4)
 
     def test_fail_bad_bulding_id(self):
         result = self.hes_client.query_hes(111111)

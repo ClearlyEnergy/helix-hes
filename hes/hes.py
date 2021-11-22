@@ -221,9 +221,9 @@ class HesHelix:
 
         try:
             scores = self.__make_api_call('retrieve_label_results', building_info)
+            ext_scores = self.__make_api_call('retrieve_extended_results', building_info)
         except zeep.exceptions.Fault as f:
             return {'status': 'error', 'message': f.message}
-
         name_map = {
             'address': 'Address Line 1',
             'city': 'City',
@@ -238,6 +238,11 @@ class HesHelix:
             'hescore_version': 'Green Assessment Property Version',
             'assessment_date': 'Green Assessment Property Date'}
         result.update({name_map[k]: scores[k] for k in name_map.keys()})
+        ext_name_map = {
+            'base_cost': 'Base Cost',
+            'package_cost': 'Package Cost'
+            }
+        result.update({ext_name_map[k]: ext_scores[k] for k in ext_name_map.keys()})
         # deal with source energy_total_base & source_energy_asset_base later
         for k in ('utility_electric', 'utility_natural_gas', 'utility_fuel_oil', 'utility_lpg', 'utility_cord_wood', 'utility_pellet_wood'):
             if scores[k] > 0:

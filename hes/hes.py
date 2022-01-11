@@ -58,6 +58,7 @@ class HesHelix:
         #        self.client = zeep.Client(wsdl, transport=transport)
         self.client = zeep.Client(wsdl)  # doesn't set global variable
         self.token = self.__get_session_token()
+        self.hpxml = None
 
     def __get_session_token(self):
         """Retrieve Home Energy Score API session token
@@ -327,6 +328,19 @@ class HesHelix:
                 else:
                     return {'status': 'error', 'message': f.message}
         return {'status': 'success', 'building_ids': building_list}
+
+    def submit_hpxml_inputs(self):
+        """Submits sample building XML
+        
+        For example:
+            client.submit_hpxml_inputs
+        """
+        building_info = {'hpxml': self.hpxml,
+                         'user_key': self.user_key,
+                         'session_token': self.token}
+        results = self.__make_api_call('submit_hpxml_inputs', building_info)
+        print(results)
+        return results
 
     def end_session(self):
         """Destroy the session token associated with this client.
